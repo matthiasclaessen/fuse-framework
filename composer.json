@@ -1,0 +1,17 @@
+{
+    "name": "lumen/framework",
+    "description": "The Lumen Framework",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Lumen\\Framework\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Matthias Claessen",
+            "email": "matthiasclaessen@gmail.com"
+        }
+    ],
+    "require": {}
+}
