@@ -1,6 +1,6 @@
 {
-  "name": "lumen/framework",
-  "description": "The Lumen Framework",
+  "name": "lumos/framework",
+  "description": "The Lumos Framework",
   "license": "MIT",
   "autoload": {
     "psr-4": {
