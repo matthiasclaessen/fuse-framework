@@ -2,6 +2,11 @@
 
 namespace Lighten\Foundation;
 
+use Lighten\Routing\Router;
+use Lighten\Http\Request;
+use Lighten\Http\Response;
+use Lighten\Routing\Controller;
+use Lighten\View\View;
 
 class Application
 {
