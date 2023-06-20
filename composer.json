@@ -1,12 +1,11 @@
 {
   "name": "fuse/framework",
   "description": "The Fuse Framework",
+  "keywords": [
+    "framework",
+    "fuse"
+  ],
   "license": "MIT",
-  "autoload": {
-    "psr-4": {
-      "Fuse\\Framework\\": "src/Lighten"
-    }
-  },
   "authors": [
     {
       "name": "Matthias Claessen",
@@ -14,6 +13,11 @@
     }
   ],
   "require": {
-    "php": "8.0"
+    "php": "^8.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Fuse\\Framework\\": "src/Lighten"
+    }
   }
 }
