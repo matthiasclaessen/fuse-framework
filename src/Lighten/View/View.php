@@ -1,6 +1,6 @@
 <?php
 
-namespace lumen\framework\src\Lighten\View;
+namespace Lighten\View;
 
 class View
 {

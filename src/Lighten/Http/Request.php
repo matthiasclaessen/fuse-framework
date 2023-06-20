@@ -1,6 +1,6 @@
 <?php
 
-namespace lumen\framework\src\Lighten\Http;
+namespace Lighten\Http;
 
 class Request
 {

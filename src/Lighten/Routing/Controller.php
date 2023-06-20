@@ -1,8 +1,8 @@
 <?php
 
-namespace lumen\framework\src\Lighten\Routing;
+namespace Lighten\Routing;
 
-use lumen\framework\src\Lighten\Foundation\Application;
+use Lighten\Foundation\Application;
 
 class Controller
 {

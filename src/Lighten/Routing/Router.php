@@ -1,13 +1,10 @@
 <?php
 
-namespace lumen\framework\src\Lighten\Routing;
+namespace Lighten\Routing;
 
-use app\Http\Controllers;
-use lumen\framework\src\Lighten\Foundation\Application;
-use lumen\framework\src\Lighten\Http\Request;
-use lumen\framework\src\Lighten\Http\Response;
-
-require Controllers\SiteController::class;
+use Lighten\Foundation\Application;
+use Lighten\Http\Request;
+use Lighten\Http\Response;
 
 /**
  * The Router class.
@@ -67,7 +64,7 @@ class Router
         }
 
         if (is_array($action)) {
-            $controller = new Controllers\SiteController();
+            $controller = new $action[0];
             Application::$app->controller = $controller;
             $controller->action = $action[1];
             $action[0] = $controller;

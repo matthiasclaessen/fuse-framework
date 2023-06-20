@@ -1,6 +1,6 @@
 <?php
 
-namespace lumen\framework\src\Lighten\Routing;
+namespace Lighten\Routing;
 
 class Route
 {

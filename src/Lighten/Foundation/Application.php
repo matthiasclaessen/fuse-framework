@@ -1,12 +1,7 @@
 <?php
 
-namespace lumen\framework\src\Lighten\Foundation;
+namespace Lighten\Foundation;
 
-use lumen\framework\src\Lighten\Http\Request;
-use lumen\framework\src\Lighten\Http\Response;
-use lumen\framework\src\Lighten\Routing\Controller;
-use lumen\framework\src\Lighten\Routing\Router;
-use lumen\framework\src\Lighten\View\View;
 
 class Application
 {
