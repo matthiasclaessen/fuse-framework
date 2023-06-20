@@ -1,10 +1,10 @@
 {
-  "name": "lumina/framework",
-  "description": "The Lumos Framework",
+  "name": "fuse/framework",
+  "description": "The Lumina Framework",
   "license": "MIT",
   "autoload": {
     "psr-4": {
-      "Lumen\\Framework\\": "src/Lighten"
+      "Lumina\\Framework\\": "src/Lighten"
     }
   },
   "authors": [
