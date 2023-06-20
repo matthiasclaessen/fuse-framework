@@ -17,7 +17,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Fuse\\Framework\\": "src/Lighten"
+      "Lighten\\": "src/Lighten"
     }
   }
 }
