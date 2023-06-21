@@ -64,10 +64,7 @@ class Router
         }
 
         if (is_array($action)) {
-            $controller = new $action[0];
-            Application::$app->controller = $controller;
-            $controller->action = $action[1];
-            $action[0] = $controller;
+            return 'Action is an array!';
         }
 
         return call_user_func($action, $this->request, $this->response);
