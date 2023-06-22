@@ -29,7 +29,7 @@ class View
 
     protected function getViewFullPath(): string
     {
-        $viewDirectory = 'views/';
+        $viewDirectory = 'resources/views/';
         $viewExtensions = '.php';
 
         return $viewDirectory . $this->viewPath . $viewExtensions;
