@@ -10,7 +10,7 @@ use Lighten\View\View;
 
 class Application
 {
-    protected $router;
+    public $router;
 
     public View $view;
 
