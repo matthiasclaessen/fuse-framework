@@ -4,42 +4,36 @@ namespace Lighten\Routing;
 
 class Route
 {
-    /**
-     * The URI pattern the route responds to.
-     *
-     * @var string
-     */
-    public string $uri;
+    protected string $method;
+    protected string $uri;
+    protected string $action;
 
-    /**
-     * The HTTP methods the route responds to.
-     *
-     * GET, POST, PUT, PATCH, DELETE
-     *
-     * @var array
-     */
-    public array $methods;
-
-    /**
-     * The route action array.
-     *
-     * @var array
-     */
-    public array $action;
-
-    /**
-     * The router instance used by the route.
-     *
-     * @var Router
-     */
-    protected Router $router;
-
-
-    public function __construct($methods, $uri, $action)
+    public function __construct($method, $uri, $action)
     {
+        $this->method = $method;
         $this->uri = $uri;
-        $this->methods = $methods;
         $this->action = $action;
     }
-    
+
+    public function matches($method, $uri): bool
+    {
+        if ($this->method !== $method) {
+            return false;
+        }
+
+        $pattern = '/^' . str_replace('/', '\/', $this->path) . '$/';
+        return (bool)preg_match($pattern, $uri);
+    }
+
+    public function execute()
+    {
+        if (is_callable($this->action)) {
+            return call_user_func($this->action);
+        }
+
+        list($controller, $method) = explode('@', $this->action);
+        $controllerInstance = new $controller();
+        return $controllerInstance->method();
+    }
+
 }

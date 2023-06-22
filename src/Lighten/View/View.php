@@ -4,32 +4,34 @@ namespace Lighten\View;
 
 class View
 {
-    public string $title = '';
+    protected $viewPath;
+    protected $data = [];
 
-    public function render(string $view, $params = [])
+    public function __construct($viewPath)
     {
-        $viewContent = $this->viewContent($view, $params);
-        $layoutContent = $this->layoutContent();
-        return str_replace("{{ content }}", $viewContent, $layoutContent);
+        $this->viewPath = $viewPath;
     }
 
-    private function layoutContent()
+    public function with($key, $value): static
     {
-        $layout = '';
+        $this->data[$key] = $value;
+        return $this;
+    }
+
+    public function render(): bool|string
+    {
+        extract($this->data);
+
         ob_start();
-        require_once dirname(__DIR__) . "/resources/views/layouts/$layout.php";
+        include $this->getViewFullPath();
         return ob_get_clean();
     }
 
-    private function viewContent(string $view, array $params)
+    protected function getViewFullPath(): string
     {
-        $view = str_replace('.', '/', $view);
-        foreach ($params as $key => $value) {
-            $$key = $value;
-        }
+        $viewDirectory = 'views/';
+        $viewExtensions = '.php';
 
-        ob_start();
-        require_once dirname(__DIR__) . "/resources/views/$view.php";
-        return ob_get_clean();
+        return $viewDirectory . $this->viewPath . $viewExtensions;
     }
 }
