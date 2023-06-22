@@ -10,32 +10,22 @@ use Lighten\View\View;
 
 class Application
 {
-    public Router $router;
-    public Request $request;
-    public Response $response;
-    public static Application $app;
-    public static string $basePath;
-    public Controller $controller;
+    protected $router;
 
     public View $view;
 
-    public function __construct(string $basePath, array $appConfig)
+    public function __construct()
     {
-        $this->request = new Request();
-        $this->response = new Response();
-        $this->controller = new Controller();
-        self::$app = $this;
-        self::$basePath = $basePath;
-        $this->router = new Router($this->request, $this->response);
-        $this->view = new View();
+        $this->router = new Router();
     }
 
-    public function run()
+    public function run(): void
     {
         try {
-            echo $this->router->resolve();
+            $response = $this->router->dispatch($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);
+            echo $response;
         } catch (\Exception $exception) {
-            echo $this->view->render('errors', ['exception' => $exception]);
+            echo '404 - Not Found!';
         }
     }
 }
