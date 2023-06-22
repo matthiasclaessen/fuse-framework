@@ -6,6 +6,7 @@ class View
 {
     protected $viewPath;
     protected $data = [];
+    protected $layout;
 
     public function __construct($viewPath)
     {
@@ -18,9 +19,20 @@ class View
         return $this;
     }
 
+    public function layout($layout): static
+    {
+        $this->layout = $layout;
+        return $this;
+    }
+
     public function render(): bool|string
     {
         extract($this->data);
+
+        if ($this->layout)
+        {
+            return $this->renderWithLayout();
+        }
 
         ob_start();
         include $this->getViewFullPath();
@@ -33,5 +45,23 @@ class View
         $viewExtensions = '.php';
 
         return $viewDirectory . $this->viewPath . $viewExtensions;
+    }
+
+    protected function renderWithLayout(): bool|string
+    {
+        $layoutDirectory = 'resources/views/layouts';
+        $layoutExtension = '.php';
+        $content = $this->renderViewContent();
+
+        ob_start();
+        include $layoutDirectory . $this->layout . $layoutExtension;
+        return ob_get_clean();
+    }
+
+    protected function renderViewContent(): bool|string
+    {
+        ob_start();
+        include $this->getViewFullPath();
+        return ob_get_clean();
     }
 }

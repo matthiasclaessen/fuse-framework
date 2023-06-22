@@ -2,10 +2,20 @@
 
 namespace Lighten\Routing;
 
-use Lighten\Foundation\Application;
+use Lighten\View\View;
 
-class Controller
+abstract class Controller
 {
-    public string $action;
+    protected function view($viewPath, $data = [], $layout = null)
+    {
+        $view = new View($viewPath);
+        $view->with($data);
+
+        if ($layout) {
+            $view->layout($layout);
+        }
+
+        return $view->render();
+    }
 
 }
