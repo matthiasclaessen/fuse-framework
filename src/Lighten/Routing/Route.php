@@ -27,13 +27,16 @@ class Route
 
     public function execute()
     {
-        if (is_callable($this->action)) {
-            return call_user_func($this->action);
+        [$controllerName, $methodName] = explode('@', $this->action);
+
+        if (class_exists($controllerName)) {
+            $controller = new $controllerName();
+            if (method_exists($controller, $methodName)) {
+                return $controller->$methodName();
+            }
         }
 
-        list($controller, $method) = explode('@', $this->action);
-        $controllerInstance = new $controller();
-        return $controllerInstance->method();
+        throw new \Exception('Invalid route action');
     }
 
 }
