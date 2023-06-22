@@ -21,7 +21,7 @@ class Route
             return false;
         }
 
-        $pattern = '/^' . str_replace('/', '\/', $this->path) . '$/';
+        $pattern = '/^' . str_replace('/', '\/', $this->uri) . '$/';
         return (bool)preg_match($pattern, $uri);
     }
 
