@@ -14,26 +14,18 @@ class Application extends Container
 
     public function __construct()
     {
-        $this->router = new Router();
+        $this->registerBindings();
     }
 
     public function registerBindings()
     {
-        
+        $this->bind('app', $this);
+        $this->singleton('router', function ($app) {
+            return new Router($app);
+        });
     }
-
-    public function instance($abstract, $instance)
+    public function registerRouter()
     {
-
+        $this->router = $this->make('router');
     }
-
-//    public function run(): void
-//    {
-//        try {
-//            $response = $this->router->dispatch($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);
-//            echo $response;
-//        } catch (\Exception $exception) {
-//            echo '404 - Not Found!';
-//        }
-//    }
 }

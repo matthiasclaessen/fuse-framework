@@ -32,4 +32,40 @@ class Request
 
         return $this->query[$key] ?? $default;
     }
+
+    public function input($key = null, $default = null)
+    {
+        if (is_null($key)) {
+            return $this->request;
+        }
+
+        return $this->request[$key] ?? $default;
+    }
+
+    public function file($key = null, $default = null)
+    {
+        if (is_null($key)) {
+            return $this->files;
+        }
+
+        return $this->files[$key] ?? $default;
+    }
+
+    public function server($key = null, $default = null)
+    {
+        if (is_null($key)) {
+            return $this->server;
+        }
+
+        return $this->server[$key] ?? $default;
+    }
+
+    public function header($key = null, $default = null)
+    {
+        if (is_null($key)) {
+            return $this->headers;
+        }
+
+        return $this->headers[$key] ?? $default;
+    }
 }
