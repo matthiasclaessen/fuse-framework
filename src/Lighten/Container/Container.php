@@ -3,6 +3,8 @@
 namespace Lighten\Container;
 
 use Closure;
+use Exception;
+use ReflectionException;
 
 class Container
 {
@@ -11,9 +13,21 @@ class Container
      *
      * @var static
      */
-    protected static $instance;
-    protected $bindings = [];
-    protected $instances = [];
+    protected static Container $instance;
+
+    /**
+     * The container's bindings.
+     *
+     * @var array
+     */
+    protected array $bindings = [];
+
+    /**
+     * The container's shared instances.
+     *
+     * @var array
+     */
+    protected array $instances = [];
 
     public function bind($abstract, $concrete = null, $shared = false): void
     {
@@ -29,7 +43,7 @@ class Container
         $this->bind($abstract, $concrete, true);
     }
 
-    public function make($abstract, array $parameters)
+    public function make($abstract, array $parameters = [])
     {
         if (isset($this->instances[$abstract])) {
             return $this->instances[$abstract];
@@ -56,6 +70,10 @@ class Container
         return $concrete === $abstract || $concrete instanceof Closure;
     }
 
+    /**
+     * @throws ReflectionException
+     * @throws Exception
+     */
     protected function build($concrete, array $parameters = [])
     {
         if ($concrete instanceof Closure) {
@@ -65,13 +83,12 @@ class Container
         $reflector = new \ReflectionClass($concrete);
 
         if (!$reflector->isInstantiable()) {
-            throw new \Exception("Class ($concrete) is not instantiable");
+            throw new Exception("Class ($concrete) is not instantiable");
         }
 
         $constructor = $reflector->getConstructor();
 
-        if ($constructor === null)
-        {
+        if ($constructor === null) {
             return new $concrete;
         }
 
@@ -81,16 +98,32 @@ class Container
         return $reflector->newInstanceArgs($resolvedDependencies);
     }
 
-    protected function resolveDependencies(array $dependencies, array $parameters = [])
+    protected function resolveDependencies(array $dependencies, array $parameters = []): array
     {
         $resolved = [];
 
-        foreach ($dependencies as $dependency)
-        {
-
-
-
+        foreach ($dependencies as $dependency) {
+            if (isset($parameters[$dependency->name])) {
+                $resolved[] = $parameters[$dependency->name];
+            } elseif ($dependency->getClass) {
+                $resolved[] = $this->make($dependency->getClass()->name);
+            } elseif ($dependency->isDefaultValueAvailable()) {
+                $resolved[] = $dependency->getDefaultValue();
+            } else {
+                throw new Exception("Unable to resolve dependency '{$dependency->name}'");
+            }
         }
+
+        return $resolved;
+    }
+
+    protected function isShared($abstract)
+    {
+        if (isset($this->bindings[$abstract])) {
+            return $this->bindings[$abstract]['shared'];
+        }
+
+        return false;
     }
 
 }
