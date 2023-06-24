@@ -27,16 +27,17 @@ class Route
 
     public function execute()
     {
-        [$controllerName, $methodName] = explode('@', $this->action);
-
-        if (class_exists($controllerName)) {
-            $controller = new $controllerName();
-            if (method_exists($controller, $methodName)) {
-                return $controller->$methodName();
-            }
+        if (is_callable($this->action)) {
+            return call_user_func($this->action);
         }
 
-        throw new \Exception('Invalid route action');
+        list($controller, $method) = explode('@', $this->action);
+        if (class_exists("app/Http/Controllers/" . $controller . ".php")) {
+            $controllerInstance = new $controller();
+            return $controllerInstance->$method();
+        }
+
+        return "Can't find controller $controller";
     }
 
 }

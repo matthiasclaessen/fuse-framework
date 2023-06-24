@@ -4,49 +4,32 @@ namespace Lighten\Http;
 
 class Request
 {
-    public function method(): string
+    protected $query;
+    protected $request;
+    protected $files;
+    protected $server;
+    protected $headers;
+
+    public function __construct(array $query = [], array $request = [], array $files = [], array $server = [], array $headers = [])
     {
-        return $_SERVER['REQUEST_METHOD'];
+        $this->query = $query;
+        $this->request = $request;
+        $this->files = $files;
+        $this->server = $server;
+        $this->headers = $headers;
     }
 
-    public function path()
+    public static function capture()
     {
-        $path = $_SERVER['REQUEST_URI'] ?? '/';
-        $position = strpos($path, '?');
+        return new static($_GET, $_POST, $_FILES, $_SERVER, getallheaders());
+    }
 
-        if ($position === false) {
-            return $path;
+    public function query($key = null, $default = null)
+    {
+        if (is_null($key)) {
+            return $this->query;
         }
 
-        return substr($path, 0, $position);
-    }
-
-    public function isGet(): bool
-    {
-        return $this->method() === 'get';
-    }
-
-    public function isPost(): bool
-    {
-        return $this->method() === 'post';
-    }
-
-    public function body(): array
-    {
-        $body = [];
-
-        if ($this->isGet()) {
-            foreach ($_GET as $key => $value) {
-                $body[$key] = filter_input(INPUT_GET, $key, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-            }
-        }
-
-        if ($this->isPost()) {
-            foreach ($_POST as $key => $value) {
-                $body[$key] = filter_input(INPUT_POST, $key, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-            }
-        }
-
-        return $body;
+        return $this->query[$key] ?? $default;
     }
 }
