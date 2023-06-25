@@ -13,11 +13,12 @@
     }
   ],
   "require": {
-    "php": "^8.0"
+    "php": "^8.0",
+    "vlucas/phpdotenv": "^v5.4.1"
   },
   "autoload": {
     "psr-4": {
-      "Lighten\\": "src/Lighten/"
+      "Ignite\\": "src/Ignite/"
     }
   }
 }

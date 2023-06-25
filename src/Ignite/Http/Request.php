@@ -1,6 +1,6 @@
 <?php
 
-namespace Lighten\Http;
+namespace Ignite\Http;
 
 class Request
 {

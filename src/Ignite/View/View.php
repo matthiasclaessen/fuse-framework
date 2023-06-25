@@ -1,6 +1,6 @@
 <?php
 
-namespace Lighten\View;
+namespace Ignite\View;
 
 class View
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Lighten\Container;
+namespace Ignite\Container;
 
 use Closure;
 use Exception;

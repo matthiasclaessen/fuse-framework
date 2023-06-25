@@ -1,8 +1,8 @@
 <?php
 
-namespace Lighten\Routing;
+namespace Ignite\Routing;
 
-use Lighten\View\View;
+use Ignite\View\View;
 
 abstract class Controller
 {

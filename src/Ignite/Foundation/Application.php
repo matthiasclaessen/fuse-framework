@@ -1,10 +1,10 @@
 <?php
 
-namespace Lighten\Foundation;
+namespace Ignite\Foundation;
 
-use Lighten\Container\Container;
-use Lighten\Routing\Router;
-use Lighten\View\View;
+use Ignite\Container\Container;
+use Ignite\Routing\Router;
+use Ignite\View\View;
 
 class Application extends Container
 {
