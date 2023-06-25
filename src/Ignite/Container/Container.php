@@ -117,6 +117,13 @@ class Container
         return $resolved;
     }
 
+    public function instance($abstract, $instance)
+    {
+        $this->instances[$abstract] = $instance;
+
+        return $instance;
+    }
+
     protected function isShared($abstract)
     {
         if (isset($this->bindings[$abstract])) {
@@ -124,6 +131,31 @@ class Container
         }
 
         return false;
+    }
+
+    /**
+     * Get the globally available instance of the container.
+     *
+     * @return static
+     */
+    public static function getInstance(): static
+    {
+        if (is_null(static::$instance)) {
+            static::$instance = new static;
+        }
+
+        return static::$instance;
+    }
+
+    /**
+     * Set the shared instance of the container.
+     *
+     * @param $container
+     * @return mixed|null
+     */
+    public static function setInstance($container = null): mixed
+    {
+        return static::$instance = $container;
     }
 
 }
