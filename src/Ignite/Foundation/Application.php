@@ -29,8 +29,6 @@ class Application extends Container
      */
     protected string $appPath;
 
-    public Router $router;
-
 
     /**
      * Create a new Ignite application instance.
@@ -56,9 +54,7 @@ class Application extends Container
 
         $this->instance(Container::class, $this);
 
-//        $this->singleton('router', function ($app) {
-//            return new Router($app);
-//        });
+
     }
 
     public function setBasePath($basePath): static
@@ -71,6 +67,9 @@ class Application extends Container
     protected function bindPathsInContainer(): void
     {
         $this->instance('path', $this->path());
+        $this->instance('path.base', $this->basePath());
+
+        $this->instance('path.bootstrap', $this->bootstrapPath());
     }
 
     /**

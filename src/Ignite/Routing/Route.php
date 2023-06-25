@@ -2,7 +2,6 @@
 
 namespace Ignite\Routing;
 
-use HttpResponseException;
 use Ignite\Container\Container;
 use Ignite\Http\Request;
 
@@ -35,12 +34,12 @@ class Route
     {
         $this->container = $this->container ?: new Container();
 
-        try {
-            // TODO: Finish try logic here
-        } catch (\HttpResponseException $exception)
-        {
-
-        }
+//        try {
+//            // TODO: Finish try logic here
+//        } catch (\HttpResponseException $exception)
+//        {
+//
+//        }
     }
 
     public function matches($method, $uri): bool

@@ -4,6 +4,7 @@ namespace Ignite\Container;
 
 use Closure;
 use Exception;
+use ReflectionClass;
 use ReflectionException;
 
 class Container
@@ -29,9 +30,16 @@ class Container
      */
     protected array $instances = [];
 
+    /**
+     * The stack of concretions currently being built.
+     *
+     * @var array[]
+     */
+    protected array $buildStack = [];
+
     public function bind($abstract, $concrete = null, $shared = false): void
     {
-        if ($concrete === null) {
+        if (is_null($concrete)) {
             $concrete = $abstract;
         }
 
@@ -74,28 +82,45 @@ class Container
      * @throws ReflectionException
      * @throws Exception
      */
-    protected function build($concrete, array $parameters = [])
+    protected function build($concrete)
     {
         if ($concrete instanceof Closure) {
-            return $concrete($this, $parameters);
+            return $concrete($this);
         }
 
-        $reflector = new \ReflectionClass($concrete);
+        try {
+            $reflector = new ReflectionClass($concrete);
+        } catch (ReflectionException $exception) {
+            throw new Exception("Target class [$concrete] does not exist.", 0, $exception);
+        }
 
         if (!$reflector->isInstantiable()) {
-            throw new Exception("Class ($concrete) is not instantiable");
+            throw new Exception("Target [$concrete] is not instantiable.", 0);
         }
+
+        $this->buildStack[] = $concrete;
 
         $constructor = $reflector->getConstructor();
 
-        if ($constructor === null) {
+        if (is_null($constructor)) {
+            array_pop($this->buildStack);
+
             return new $concrete;
         }
 
         $dependencies = $constructor->getParameters();
-        $resolvedDependencies = $this->resolveDependencies($dependencies, $parameters);
 
-        return $reflector->newInstanceArgs($resolvedDependencies);
+        try {
+            $instances = $this->resolveDependencies($dependencies);
+        } catch (Exception $exception) {
+            array_pop($this->buildStack);
+
+            throw $exception;
+        }
+
+        array_pop($this->buildStack);
+
+        return $reflector->newInstanceArgs($instances);
     }
 
     protected function resolveDependencies(array $dependencies, array $parameters = []): array
