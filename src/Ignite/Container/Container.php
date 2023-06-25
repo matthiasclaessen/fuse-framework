@@ -6,6 +6,7 @@ use Closure;
 use Exception;
 use ReflectionClass;
 use ReflectionException;
+use TypeError;
 
 class Container
 {
@@ -19,16 +20,23 @@ class Container
     /**
      * The container's bindings.
      *
-     * @var array
+     * @var array[]
      */
     protected array $bindings = [];
 
     /**
      * The container's shared instances.
      *
-     * @var array
+     * @var object[]
      */
     protected array $instances = [];
+
+    /**
+     * The registered type aliases.
+     *
+     * @var string[]
+     */
+    protected array $aliases = [];
 
     /**
      * The stack of concretions currently being built.
@@ -43,7 +51,27 @@ class Container
             $concrete = $abstract;
         }
 
+        if (!$concrete instanceof Closure) {
+            if (!is_string($concrete)) {
+                throw new TypeError(self::class . '::bind(): Argument #2 ($concrete) must be of type Closure|string|null');
+            }
+
+            $concrete = $this->getClosure($abstract, $concrete);
+        }
+
+
         $this->bindings[$abstract] = compact('concrete', 'shared');
+    }
+
+    public function getClosure($abstract, $concrete): Closure
+    {
+        return function ($container, $parameters = []) use ($abstract, $concrete) {
+            if ($abstract === $concrete) {
+                return $container->build($concrete);
+            }
+
+            return $container->resolve($concrete, $parameters);
+        };
     }
 
     public function singleton($abstract, $concrete = null): void
@@ -51,17 +79,18 @@ class Container
         $this->bind($abstract, $concrete, true);
     }
 
-    public function make($abstract, array $parameters = [])
+    public function make($abstract, array $parameters = []): ?object
+    {
+        return $this->resolve($abstract, $parameters);
+    }
+
+    public function resolve($abstract, $parameters = [])
     {
         if (isset($this->instances[$abstract])) {
             return $this->instances[$abstract];
         }
 
-        $concrete = $this->getConcrete($abstract);
 
-        if ($this->isBuildable($concrete, $abstract)) {
-
-        }
     }
 
     protected function getConcrete($abstract)
@@ -149,6 +178,16 @@ class Container
         return $instance;
     }
 
+    /**
+     * Get the container's bindings.
+     *
+     * @return array
+     */
+    public function getBindings(): array
+    {
+        return $this->bindings;
+    }
+
     protected function isShared($abstract)
     {
         if (isset($this->bindings[$abstract])) {
@@ -156,6 +195,13 @@ class Container
         }
 
         return false;
+    }
+
+    public function flush()
+    {
+        $this->aliases = [];
+        $this->bindings = [];
+        $this->instances = [];
     }
 
     /**

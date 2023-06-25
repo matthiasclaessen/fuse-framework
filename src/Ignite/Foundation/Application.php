@@ -3,8 +3,6 @@
 namespace Ignite\Foundation;
 
 use Ignite\Container\Container;
-use Ignite\Routing\Router;
-use Ignite\View\View;
 
 class Application extends Container
 {
@@ -38,6 +36,10 @@ class Application extends Container
      */
     public function __construct(string $basePath = null)
     {
+        if ($basePath) {
+            $this->setBasePath($basePath);
+        }
+
         $this->registerBaseBindings();
     }
 
@@ -53,13 +55,13 @@ class Application extends Container
         $this->instance('app', $this);
 
         $this->instance(Container::class, $this);
-
-
     }
 
     public function setBasePath($basePath): static
     {
         $this->basePath = rtrim($basePath, '\/');
+
+        $this->bindPathsInContainer();
 
         return $this;
     }
