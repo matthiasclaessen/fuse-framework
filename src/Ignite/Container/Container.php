@@ -197,7 +197,18 @@ class Container
         return false;
     }
 
-    public function flush()
+    /**
+     * Get the alias for an abstract if available.
+     *
+     * @param string $abstract
+     * @return string
+     */
+    public function getAlias(string $abstract): string
+    {
+        return isset($this->aliases[$abstract]) ? $this->getAlias($this->aliases[$abstract]) : $abstract;
+    }
+
+    public function flush(): void
     {
         $this->aliases = [];
         $this->bindings = [];

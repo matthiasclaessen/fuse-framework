@@ -154,4 +154,19 @@ class Application extends Container
         return $this->basePath . DIRECTORY_SEPARATOR . 'public';
     }
 
+    /**
+     * Set the public / web directory.
+     *
+     * @param  string  $path
+     * @return $this
+     */
+    public function usePublicPath($path)
+    {
+        $this->publicPath = $path;
+
+        $this->instance('path.public', $path);
+
+        return $this;
+    }
+
 }
