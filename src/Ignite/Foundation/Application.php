@@ -88,6 +88,21 @@ class Application extends Container
     }
 
     /**
+     * Set the application directory.
+     *
+     * @param string $path
+     * @return $this
+     */
+    public function useAppPath($path): static
+    {
+        $this->appPath = $path;
+
+        $this->instance('path', $path);
+
+        return $this;
+    }
+
+    /**
      * Get the base path of the Fuse installation.
      *
      * @param string $path

@@ -229,4 +229,21 @@ class Container
         return static::$instance = $container;
     }
 
+    public function __get($key)
+    {
+        return $this[$key];
+    }
+
+    /**
+     * Dynamically set container services
+     *
+     * @param string $key
+     * @param mixed $value
+     * @return void
+     */
+    public function __set($key, $value)
+    {
+        $this[$key] = $value;
+    }
+
 }
