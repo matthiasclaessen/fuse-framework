@@ -28,8 +28,21 @@ if (!function_exists('app_path')) {
      * @param string $path
      * @return string
      */
-    function app_path($path): string
+    function app_path(string $path): string
     {
         return app()->path($path);
+    }
+}
+
+if (! function_exists('public_path')) {
+    /**
+     * Get the path to the public folder.
+     *
+     * @param  string  $path
+     * @return string
+     */
+    function public_path(string $path = ''): string
+    {
+        return app()->publicPath($path);
     }
 }

@@ -17,6 +17,9 @@
     "vlucas/phpdotenv": "^v5.4.1"
   },
   "autoload": {
+    "files": [
+      "src/Ignite/Foundation/helpers.php"
+    ],
     "psr-4": {
       "Ignite\\": "src/Ignite/"
     }
