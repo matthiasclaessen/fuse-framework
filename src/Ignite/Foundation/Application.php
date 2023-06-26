@@ -27,6 +27,7 @@ class Application extends Container
      */
     protected string $appPath;
 
+    protected string $databasePath;
 
     /**
      * Create a new Ignite application instance.
@@ -70,6 +71,9 @@ class Application extends Container
     {
         $this->instance('path', $this->path());
         $this->instance('path.base', $this->basePath());
+        $this->instance('path.config', $this->configPath());
+        $this->instance('path.public', $this->publicPath());
+        $this->instance('path.database', $this->databasePath());
 
         $this->instance('path.bootstrap', $this->bootstrapPath());
     }
@@ -82,7 +86,7 @@ class Application extends Container
      */
     public function path(string $path = ''): string
     {
-        $appPath = $this->appPath ?: $this->basePath . DIRECTORY_SEPARATOR . 'app';
+        $appPath = $this->appPath ?? $this->basePath . DIRECTORY_SEPARATOR . 'app';
 
         return $appPath . ($path != '' ? DIRECTORY_SEPARATOR . $path : '');
     }
@@ -118,5 +122,36 @@ class Application extends Container
         return $this->basePath . DIRECTORY_SEPARATOR . 'bootstrap' . ($path != '' ? DIRECTORY_SEPARATOR . $path : '');
     }
 
+    /**
+     * Get the path to the application configuration files.
+     *
+     * @param string $path
+     * @return string
+     */
+    public function configPath(string $path = ''): string
+    {
+        return $this->basePath . DIRECTORY_SEPARATOR . 'config' . ($path != '' ? DIRECTORY_SEPARATOR . $path : '');
+    }
+
+    /**
+     * Get the path to the database directory.
+     *
+     * @param string $path
+     * @return string
+     */
+    public function databasePath(string $path = ''): string
+    {
+        return ($this->databasePath ?? $this->basePath . DIRECTORY_SEPARATOR . 'database') . ($path != '' ? DIRECTORY_SEPARATOR . $path : '');
+    }
+
+    /**
+     * Get the path to the public / web directory.
+     *
+     * @return string
+     */
+    public function publicPath(): string
+    {
+        return $this->basePath . DIRECTORY_SEPARATOR . 'public';
+    }
 
 }
