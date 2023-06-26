@@ -4,6 +4,7 @@ namespace Ignite\Container;
 
 use Closure;
 use Exception;
+use LogicException;
 use ReflectionClass;
 use ReflectionException;
 use TypeError;
@@ -45,6 +46,17 @@ class Container
      */
     protected array $buildStack = [];
 
+    /**
+     * Determine if a given string is an alias.
+     *
+     * @param string $name
+     * @return bool
+     */
+    public function isAlias(string $name): bool
+    {
+        return isset($this->aliases[$name]);
+    }
+
     public function bind($abstract, $concrete = null, $shared = false): void
     {
         if (is_null($concrete)) {
@@ -74,9 +86,48 @@ class Container
         };
     }
 
-    public function singleton($abstract, $concrete = null): void
+    /**
+     * Register a shared binding in the container.
+     *
+     * @param string $abstract
+     * @param Closure|string|null $concrete
+     * @return void
+     */
+    public function singleton(string $abstract, Closure|string $concrete = null): void
     {
         $this->bind($abstract, $concrete, true);
+    }
+
+    /**
+     * Register an existing instance as shared in the container.
+     *
+     * @param string $abstract
+     * @param mixed $instance
+     * @return mixed
+     */
+    public function instance(string $abstract, mixed $instance): mixed
+    {
+        unset($this->aliases[$abstract]);
+
+        $this->instances[$abstract] = $instance;
+
+        return $instance;
+    }
+
+    /**
+     * Alias a type to a different name.
+     *
+     * @param string $abstract
+     * @param string $alias
+     * @return void
+     */
+    public function alias(string $abstract, string $alias): void
+    {
+        if ($alias === $abstract) {
+            throw new LogicException("[{$abstract}] is aliased to itself.");
+        }
+
+        $this->aliases[$alias] = $abstract;
     }
 
     public function make($abstract, array $parameters = []): ?object
@@ -86,6 +137,8 @@ class Container
 
     public function resolve($abstract, $parameters = [])
     {
+        $abstract = $this->getAlias(($abstract));
+
         if (isset($this->instances[$abstract])) {
             return $this->instances[$abstract];
         }
@@ -93,7 +146,13 @@ class Container
 
     }
 
-    protected function getConcrete($abstract)
+    /**
+     * Get the concrete type for a given abstract.
+     *
+     * @param callable|string $abstract
+     * @return mixed
+     */
+    protected function getConcrete(callable|string $abstract): mixed
     {
         if (isset($this->bindings[$abstract])) {
             return $this->bindings[$abstract]['concrete'];
@@ -102,7 +161,14 @@ class Container
         return $abstract;
     }
 
-    protected function isBuildable($concrete, $abstract): bool
+    /**
+     * Determine if the given concrete is buildable.
+     *
+     * @param mixed $concrete
+     * @param string $abstract
+     * @return bool
+     */
+    protected function isBuildable(mixed $concrete, string $abstract): bool
     {
         return $concrete === $abstract || $concrete instanceof Closure;
     }
@@ -171,12 +237,6 @@ class Container
         return $resolved;
     }
 
-    public function instance($abstract, $instance)
-    {
-        $this->instances[$abstract] = $instance;
-
-        return $instance;
-    }
 
     /**
      * Get the container's bindings.
@@ -252,7 +312,7 @@ class Container
      * @param mixed $value
      * @return void
      */
-    public function __set($key, $value)
+    public function __set(string $key, mixed $value)
     {
         $this[$key] = $value;
     }
