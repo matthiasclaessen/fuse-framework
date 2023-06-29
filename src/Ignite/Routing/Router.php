@@ -2,56 +2,75 @@
 
 namespace Ignite\Routing;
 
-use Exception;
-use Ignite\Container\Container;
+use Ignite\Config\Loader\LoaderInterface;
+use Ignite\Config\ConfigCache;
+use InvalidArgumentException;
 
 /**
- * The Router class.
+ * The Router class is an example of the integration of all pieces of the routing system for easier use.
+ *
+ * @author Matthias Claessen
  */
-class Router
+class Router implements RouterInterface
 {
-    protected array $routes;
+    protected $matcher;
+    protected $generator;
 
-    /**
-     * The IoC container instance.
-     *
-     * @var Container
-     */
-    protected Container $container;
+    protected $defaults;
 
-    public function __construct(Container $container = null)
+    protected $context;
+    protected $loader;
+    protected $collection;
+
+    protected $resource;
+    protected $options;
+
+    public function __construct(LoaderInterface $loader, $resource, array $options = [], RequestContext $context = null, array $defaults = [])
     {
-        $this->routes = [];
-        $this->container = $container ?: new Container();
+        $this->loader = $loader;
+        $this->resource = $resource;
+        $this->context = null === $context ? new RequestContext() : $context;
+        $this->defaults = $defaults;
+        $this->setOptions($options);
     }
 
     /**
-     * Register a new GET route with the router.
+     * Set options
      *
-     * @param string $uri
-     * @param array|callable|null|string $action
-     * @return Route
+     * Available options:
+     *
+     * cache_directory: The cache directory (or null to disable caching)
+     * debug: Whether to enable debugging or not (false by default)
+     * resource_type: Type hint for the main resource (optional)
+     *
+     * @param array $options
+     *
+     * @return void
+     *
+     * @throws InvalidArgumentException The exception that will be thrown when an unsupported option is provided
      */
-    public function get($uri, $action = null): void
+    public function setOptions(array $options): void
     {
-        $this->addRoute('GET', $uri, $action);
-    }
+        $this->options = array(
+            'cache_directory' => null,
+            'debug' => false,
+            'resource_type' => null
+        );
 
-    public function addRoute($method, $uri, $action): void
-    {
-        $route = new Route($method, $uri, $action);
-        $this->routes[] = $route;
-    }
+        $invalid = [];
+        $isInvalid = false;
 
-    public function dispatch($method, $uri)
-    {
-        foreach ($this->routes as $route) {
-            if ($route->matches($method, $uri)) {
-                return $route->execute();
+        foreach ($options as $key => $value) {
+            if (array_key_exists($key, $this->options)) {
+                $this->options[$key] = $value;
+            } else {
+                $isInvalid = true;
+                $invalid[] = $key;
             }
         }
 
-        throw new Exception('Route not found');
+        if ($isInvalid) {
+            throw new InvalidArgumentException(sprintf('The Router does not support the following options: "%s".', implode('\', \'', $invalid)));
+        }
     }
-
 }
