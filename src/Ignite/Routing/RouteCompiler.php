@@ -2,8 +2,21 @@
 
 namespace Ignite\Routing;
 
+/**
+ * RouteCompiler compiles Route instances to CompiledRoute instances.
+ *
+ * @author Matthias Claessen
+ */
 class RouteCompiler implements RouteCompilerInterface
 {
+
+    /**
+     * Compile the current route instance.
+     *
+     * @param Route $route A Route instance
+     *
+     * @return CompiledRoute A CompiledRoute instance
+     */
     public function compile(Route $route): CompiledRoute
     {
         $pattern = $route->getPattern();
@@ -12,7 +25,7 @@ class RouteCompiler implements RouteCompilerInterface
         $variables = [];
         $position = 0;
 
-        preg_match_all('#.\{([\w\d_]+)\}#', $pattern, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER);
+        preg_match_all('#.\{([\w_]+)#', $pattern, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER);
 
         foreach ($matches as $match) {
             if ($text = substr($pattern, $position, $match[0][1] - $position)) {
@@ -30,7 +43,7 @@ class RouteCompiler implements RouteCompilerInterface
                     $separators[] = $pattern[$position];
                 }
 
-                $regularExpression = sprintf('[^%s]+?', preg_quote(implode('', array_unique($seperators)), '#'));
+                $regularExpression = sprintf('[^%s]+?', preg_quote(implode('', array_unique($separators)), '#'));
             }
 
             $tokens[] = array('variable', $match[0][0][0], $regularExpression, $variable);

@@ -191,7 +191,7 @@ class Route
             return $this->compiled;
         }
 
-        $class = $this->getOption('compiler_status');
+        $class = $this->getOption('compiler_class');
 
         if (!isset(self::$compilers[$class])) {
             self::$compilers[$class] = new $class;

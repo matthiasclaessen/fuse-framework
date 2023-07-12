@@ -1,4 +1,12 @@
+# Composer Files & Folders
 /vendor
 composer.lock
+
+# IDE Settings
 /.idea
 /.vscode
+
+
+# Testing Folders
+/bootstrap
+/public

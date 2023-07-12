@@ -2,6 +2,8 @@
 
 namespace Ignite\Http;
 
+use UnexpectedValueException;
+
 /**
  * Request represents an HTTP request.
  *
@@ -66,18 +68,18 @@ class Request
     public HeaderContainer $headers;
 
     protected string $content;
-    protected $languages;
-    protected $charsets;
-    protected $acceptableContentTypes;
-    protected $pathInfo;
-    protected $requestUri;
-    protected $baseUrl;
-    protected $basePath;
-    protected $method;
-    protected $format;
-    protected $session;
+    protected array $languages;
+    protected array $charsets;
+    protected array $acceptableContentTypes;
+    protected string $pathInfo;
+    protected string $requestUri;
+    protected string $baseUrl;
+    protected string $basePath;
+    protected string $method;
+    protected string $format;
+    protected Session $session;
 
-    protected static $formats;
+    protected static array $formats;
 
     /**
      * Constructor.
@@ -88,9 +90,9 @@ class Request
      * @param array $cookies The COOKIE parameters
      * @param array $files The FILES parameters
      * @param array $server The SERVER parameters
-     * @param string $content The raw body data
+     * @param string|null $content The raw body data
      */
-    public function __construct(array $query = [], array $request = [], array $attributes = [], array $cookies = [], array $files = [], array $server = [], $content = null)
+    public function __construct(array $query = [], array $request = [], array $attributes = [], array $cookies = [], array $files = [], array $server = [], string $content = null)
     {
         $this->initialize($query, $request, $attributes, $cookies, $files, $server, $content);
     }
@@ -106,7 +108,7 @@ class Request
      * @param array $cookies The COOKIE parameters
      * @param array $files The FILES parameters
      * @param array $server The SERVER parameters
-     * @param string $content The raw body data
+     * @param string|null $content The raw body data
      *
      * @return void
      */
@@ -121,10 +123,10 @@ class Request
         $this->headers = new HeaderContainer($this->server->getHeaders());
 
         $this->content = $content;
-        $this->languages = null;
-        $this->charsets = null;
-        $this->acceptableContentTypes = null;
-        $this->pathinfo = null;
+        $this->languages = [];
+        $this->charsets = [];
+        $this->acceptableContentTypes = [];
+        $this->pathInfo = null;
         $this->requestUri = null;
         $this->baseUrl = null;
         $this->basePath = null;
@@ -250,7 +252,7 @@ class Request
      * @param array|null $files The FILES parameters
      * @param array|null $server The SERVER parameters
      */
-    public function duplicate(array $query = null, array $request = null, array $attributes = null, array $cookies = null, array $files = null, array $server = null)
+    public function duplicate(array $query = null, array $request = null, array $attributes = null, array $cookies = null, array $files = null, array $server = null): Request
     {
         $duplicate = clone $this;
 
@@ -366,7 +368,7 @@ class Request
         return $this->query->get($key, $this->attributes->get($key, $this->request->get($key, $default, $deep), $deep), $deep);
     }
 
-    public function getSession()
+    public function getSession(): Session
     {
         return $this->session;
     }
@@ -381,7 +383,7 @@ class Request
         return $this->session !== null;
     }
 
-    public function setSession(Session $session)
+    public function setSession(Session $session): void
     {
         $this->session = $session;
     }
@@ -422,7 +424,7 @@ class Request
 
     public function getScheme(): string
     {
-        return $this->isSecure ? 'https' : 'http';
+        return $this->isSecure() ? 'https' : 'http';
     }
 
     public function getPort()
@@ -434,7 +436,7 @@ class Request
         return $this->server->get('SERVER_PORT');
     }
 
-    public function getHttpHost()
+    public function getHttpHost(): string
     {
         $scheme = $this->getScheme();
         $port = $this->getPort();
@@ -486,8 +488,8 @@ class Request
                 $order[] = $segment;
             } else {
                 $tmp = explode('=', rawurldecode($segment), 2);
-                $parts[] = rawurlencode($tpm[0]) . '=' . rawurlencode($tmp[1]);
-                $order[] = $tpm[0];
+                $parts[] = rawurlencode($tmp[0]) . '=' . rawurlencode($tmp[1]);
+                $order[] = $tmp[0];
             }
         }
 
@@ -505,4 +507,239 @@ class Request
         return 'on' == strtolower($this->server->get('HTTPS')) || 1 == $this->server->get('HTTPS');
     }
 
+    /**
+     * Return the host name.
+     *
+     * This method can read the client port from the "X-Forwarded-Host" header when trusted proxies were set via "setTrustedProxies()".
+     *
+     * The "X-Forwarded-Host" header must contain the client host name.
+     *
+     * If your reverse proxy uses a different header name than "X-Forwarded-Host", configure it via "setTrustedHeaderName()" with the "client-host" key.
+     *
+     * @return string
+     *
+     * @throws UnexpectedValueException The exception thrown when the host name is invalid
+     */
+    public function getHost(): string
+    {
+        if (self::$trustProxy && self::$trustedHeaders[self::HEADER_CLIENT_HOST] && $host = $this->headers->get(self::$trustedHeaders[self::HEADER_CLIENT_HOST])) {
+            $elements = explode(',', $host);
+
+            $host = $elements[count($elements) - 1];
+        } elseif (!$host = $this->headers->get('HOST')) {
+            if (!$host = $this->server->get('SERVER_NAME')) {
+                $host = $this->server->get('SERVER_ADDRESS', '');
+            }
+        }
+
+        // Trim and remove port number from host
+        $host = preg_replace('/:\d+$/', '', trim($host));
+
+        // Check if host does not contain forbidden characters
+        if ($host && !preg_match('/^\[?(?:[a-zA-Z0-9-:\\]_]+\.?)+$/', $host)) {
+            throw new UnexpectedValueException('Invalid Host');
+        }
+
+        if (count(self::$trustedHostPatterns) > 0) {
+            // To avoid host header injection attacks, you should provide a list of trusted host patterns
+            if (in_array($host, self::$trustedHosts)) {
+                return $host;
+            }
+
+            foreach (self::$trustedHostPatterns as $pattern) {
+                if (preg_match($pattern, $host)) {
+                    self::$trustedHosts[] = $host;
+
+                    return $host;
+                }
+            }
+
+            throw new UnexpectedValueException('Untrusted Host');
+        }
+
+        return $host;
+    }
+
+    public function setMethod(string $method): void
+    {
+        $this->method = null;
+        $this->server->set('REQUEST_METHOD', $method);
+    }
+
+    public function getMethod(): string
+    {
+        if ($this->method === null) {
+            $this->method = strtoupper($this->server->get('REQUEST_METHOD', 'GET'));
+            if ($this->method === 'POST') {
+                $this->method = strtoupper($this->headers->get('X-HTTP-METHOD-OVERRIDE', $this->request->get('_method', 'POST')));
+            }
+        }
+
+        return $this->method;
+    }
+
+    public function getMimeType($format)
+    {
+        if (static::$formats === null) {
+            static::initializeFormats();
+        }
+
+        return isset(static::$formats[$format]) ? static::$formats[$format][0] : null;
+    }
+
+    public function getFormat($mimeType): string
+    {
+        $position = strpos($mimeType, ';');
+
+        if ($position !== false) {
+            $mimeType = substr($mimeType, 0, $position);
+        }
+
+        if (static::$formats === null) {
+            static::initializeFormats();
+        }
+
+        foreach (static::$formats as $format => $mimeTypes) {
+            if (in_array($mimeType, (array)$mimeTypes)) {
+                return $format;
+            }
+        }
+
+        return '';
+    }
+
+
+    /*
+    |--------------------------------------------------------------
+    | Protected Functions
+    |--------------------------------------------------------------
+    */
+
+    protected function prepareRequestUri()
+    {
+        $requestUri = '';
+
+        if ($this->headers->has('X_ORIGINAL_URL') && false !== stripos(PHP_OS, 'WIN')) {
+            $requestUri = $this->headers->get('X_ORIGINAL_URL');
+            $this->headers->remove('X_ORIGINAL_URL');
+        }
+
+        // Normalize the request URI to ease creating sub-requests from this request
+        $this->server->set('REQUEST_URI', $requestUri);
+
+        return $requestUri;
+    }
+
+    protected function prepareBaseUrl()
+    {
+        $fileName = basename($this->server->get('SCRIPT_FILENAME'));
+
+        if (basename($this->server->get('SCRIPT_NAME')) == $fileName) {
+            $baseUrl = $this->server->get('SCRIPT_NAME');
+        } elseif (basename($this->server->get('PHP_SELF')) === $fileName) {
+            $baseUrl = $this->server->get('PHP_SELF');
+        } elseif (basename($this->server->get('ORIG_SCRIPT_NAME')) === $fileName) {
+            $baseUrl = $this->server->get('ORIG_SCRIPT_NAME');
+        } else {
+            $path = $this->server->get('PHP_SELF', '');
+            $file = $this->server->get('SCRIPT_FILENAME', '');
+            $segs = explode('/', trim($file, '/'));
+            $segs = array_reverse($segs);
+            $index = 0;
+            $last = count($segs);
+            $baseUrl = '';
+
+            do {
+                $seg = $segs[$index];
+                $baseUrl = '/' . $seg . $baseUrl;
+                ++$index;
+            } while (($last > $index) && (false !== ($position = strpos($path, $baseUrl))) && (0 != $position));
+        }
+
+        $requestUri = $this->getRequestUri();
+
+        if ($baseUrl && str_starts_with($requestUri, $baseUrl)) {
+            // Full $baseUrl matches
+            return $baseUrl;
+        }
+
+        if ($baseUrl && str_starts_with($requestUri, dirname($baseUrl))) {
+            return rtrim(dirname($baseUrl, '/'));
+        }
+
+        $truncatedRequestUri = $requestUri;
+
+        if (($position = strpos($requestUri, '?')) !== false) {
+            $truncatedRequestUri = substr($requestUri, 0, $position);
+        }
+
+        $baseName = basename($baseUrl);
+
+        if (empty($baseName) || !strpos($truncatedRequestUri, $baseName)) {
+            // No match whatsoever, set it blank
+            return '';
+        }
+
+        return rtrim($baseUrl, '/');
+    }
+
+
+    protected function prepareBasePath(): string
+    {
+        $fileName = basename($this->server->get('SCRIPT_FILENAME'));
+        $baseUrl = $this->getBaseUrl();
+
+        if (empty($baseUrl)) {
+            $basePath = dirname($baseUrl);
+        } else {
+            $basePath = $baseUrl;
+        }
+
+        if (DIRECTORY_SEPARATOR === '\\') {
+            $basePath = str_replace('\\', '/', $basePath);
+        }
+
+        return rtrim($basePath, '/');
+    }
+
+
+    protected function preparePathInfo()
+    {
+        $baseUrl = $this->getBaseUrl();
+        $requestUri = $this->getRequestUri();
+
+        if ($requestUri === null) {
+            return '/';
+        }
+
+        $pathInfo = '/';
+
+        // Remove query string from REQUEST_URI
+        if ($position = strpos($requestUri, '?')) {
+            $requestUri = substr($requestUri, 0, $position);
+        }
+
+        if (($baseUrl !== null) && !($pathInfo = substr(urldecode($requestUri), strlen(urldecode($baseUrl))))) {
+            // If substr() returns false, then PATH_INFO is set to an empty string
+            return '/';
+        } elseif ($baseUrl === null) {
+            return $requestUri;
+        }
+
+        return (string)$pathInfo;
+    }
+
+    protected static function initializeFormats(): void
+    {
+        static::$formats = array(
+            'html' => array('text/html', 'application/xhtml+xml'),
+            'text' => array('text/plain'),
+            'js' => array('application/javascript', 'application/x-javascript', 'text/javascript'),
+            'css' => array('text/css'),
+            'json' => array('application/json', 'application/x-json'),
+            'xml' => array('text/xml', 'application/xml', 'application/x-xml'),
+            'rdf' => array('application/rdf-xml'),
+            'atom' => array('application/atom+xml'),
+        );
+    }
 }

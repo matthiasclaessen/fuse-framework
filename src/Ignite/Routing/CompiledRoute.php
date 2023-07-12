@@ -10,11 +10,11 @@ namespace Ignite\Routing;
  */
 class CompiledRoute
 {
-    private $route;
-    private $variables;
-    private $tokens;
-    private $staticPrefix;
-    private $regularExpression;
+    private Route $route;
+    private array $variables;
+    private array $tokens;
+    private string $staticPrefix;
+    private string $regularExpression;
 
     public function __construct(Route $route, $staticPrefix, $regularExpression, array $tokens, array $variables)
     {
@@ -30,12 +30,12 @@ class CompiledRoute
         return $this->route;
     }
 
-    public function getStaticPrefix()
+    public function getStaticPrefix(): string
     {
         return $this->staticPrefix;
     }
 
-    public function getRegularExpression()
+    public function getRegularExpression(): string
     {
         return $this->regularExpression;
     }
